@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				$('#job-role-other').removeClass('is-hidden');
 			} else {
 				$('#job-role-other').addClass('is-hidden');
+				$('#other-title').val('');
 			}
 		});
 		
@@ -56,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		optionSelected === 'Bitcoin' ? $('#bitcoin').show() : $('#bitcoin').hide();
 		
 		if (optionSelected !== 'Credit Card') {
+			clearCCFields();
 			removeCCWarnings();
 		}
 	}
@@ -166,6 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		$('#cvv').removeClass('warning');
 	}
 	
+	const clearCCFields = () => {
+		console.log('clear');
+		$('#cc-num').val('');
+		$('#zip').val('');
+		$('#cvv').val('');
+	}
+	
 	// Checks if num is valid based on pattern supplied and field
 	const isValidNum = (pattern, field) => {
 		const isCorrect = pattern.test($(field).val());
@@ -202,6 +211,34 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 	
+	const checkCreditCard = () => {
+		// Credit card field should only accept a number between 13 and 16 digits
+			const creditCheck = isValidNum(/^[0-9]{13,16}$/, '#cc-num');
+			
+			// create custom error message for credit card
+			if (!(creditCheck)) {
+				if ($('#cc-num').val() === "") {
+					message = "Please enter a credit card number.";
+				} else {
+					message = "Please enter a number that is between 13 and 16 digits long.";
+				}
+			
+				let errorMessage = '<div id="credit-error" class="warning-text">' + message + '</div>';
+				$('div#credit-error').remove();
+				$('label[for="exp-month"]').prepend(errorMessage);
+			} else {
+				$('div#credit-error').remove();
+			}
+	}
+	
+	const checkZip = () => {
+		isValidNum(/^[0-9]{5}$/, '#zip');
+	}
+	
+	const checkCVV = () => {
+		isValidNum(/^[0-9]{3}$/, '#cvv');
+	}
+	
 	$("form").submit(function( event ) {
 		// Provide some kind of indication when there’s a validation error. The field’s borders could turn red
 		
@@ -228,30 +265,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		// a credit card number, a zip code, and a 3 number CVV value before the form can be submitted.
 		
 		if ($('#payment option:selected').text() === 'Credit Card') {
-			// Credit card field should only accept a number between 13 and 16 digits
-			const creditCheck = isValidNum(/^[0-9]{13,16}$/, '#cc-num');
 			
-			// create custom error message for credit card
-			if (!(creditCheck)) {
-				if ($('#cc-num').val() === "") {
-					message = "Please enter a credit card number.";
-				} else {
-					message = "Please enter a number that is between 13 and 16 digits long.";
-				}
-			
-				let errorMessage = '<div id="credit-error" class="warning-text">' + message + '</div>';
-				$('div#credit-error').remove();
-				$('label[for="exp-month"]').prepend(errorMessage);
-			} else {
-				$('div#credit-error').remove();
-			}
+			checkCreditCard();
 		
 			//The zipcode field should accept a 5-digit number
-			isValidNum(/^[0-9]{5}$/, '#zip');
+			checkZip();
 		
 			//The CVV should only accept a number that is exactly 3 digits long
-			isValidNum(/^[0-9]{3}$/, '#cvv');
+			checkCVV();
 		} else {
+			clearCCFields();
 			// if, in some way, the warning class is still attached to the credit card fields
 			// this will remove them to allow submit
 			removeCCWarnings();
@@ -264,8 +287,20 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 	
 	// Program your form so that it provides a real-time validation error message for at least one text input field.
-	$('#mail').keydown().on('keypress', function() {
+	$('#mail').on('keyup', function() {
 		isValidEmail($('#mail').val()) ? $('#mail').removeClass('warning') : $('#mail').addClass('warning');
+	});
+	
+	$('#cc-num').on('keyup', function() {
+		checkCreditCard();
+	});
+	
+	$('#zip').on('keyup', function() {
+		checkZip();
+	});
+	
+	$('#cvv').on('keyup', function() {
+		checkCVV();
 	});
 	
 	// methods called when first opening page
